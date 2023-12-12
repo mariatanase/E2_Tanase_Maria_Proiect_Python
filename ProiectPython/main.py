@@ -32,6 +32,7 @@ def create_directory_and_python_file(base_directory_path, name):
             pass
     except Exception as e:
         print(f"Error occurred: {e}")
+    return lab_directory, lab_file
 
 while current_url:
     response = requests.get(current_url)
@@ -43,7 +44,26 @@ while current_url:
         result = re.search("\d+", title.text)
         lab_number = result.group(0)
         dir_name = "lab" + lab_number
-        create_directory_and_python_file(directory_path, dir_name)
+        dir_path, file_path = create_directory_and_python_file(directory_path, dir_name)
+
+        main = soup.find('main')
+
+        ol_elements = main.find_all('ol')
+        for ol in ol_elements:
+            start = ol.get('start')
+            if start:
+                ol_start = int(start)
+            else:
+                ol_start = 1
+
+            li_elements = ol.find_all('li')
+            for i, li in enumerate(li_elements, start=ol_start):
+                func_name = "ex" + str(i)
+                try:
+                    with open(file_path, 'a') as file:
+                        file.write(f'def {func_name}():\n    pass\n')
+                except Exception as e:
+                    print(f"Error occurred: {e}")
 
     next_link = soup.find('a', {'rel': 'next'})
 
