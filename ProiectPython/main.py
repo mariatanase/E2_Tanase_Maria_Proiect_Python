@@ -10,25 +10,46 @@ INPUT: Directorul unde se vor vrea subdirectoarele cu fisierele .py
 Template.py <director>
 OUTPUT: Directorul completat cu cerintele de mai sus'''
 
+import os
 import requests
+import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 base_url = "https://gdt050579.github.io/python-course-fii/"
 current_url = base_url + "labs.html"
+next_url = None
+
+directory_path = "C:/Users/Maria/PycharmProjects/Python/ProiectPython/labs"
+
+def create_directory_and_python_file(base_directory_path, name):
+    try:
+        lab_directory = os.path.join(base_directory_path, name)
+        if not os.path.exists(lab_directory):
+            os.makedirs(lab_directory)
+        lab_file = os.path.join(lab_directory, f"{name}.py")
+        with open(lab_file, 'w'):
+            pass
+    except Exception as e:
+        print(f"Error occurred: {e}")
 
 while current_url:
-    print(current_url)
-
     response = requests.get(current_url)
     html_content = response.text
     soup = BeautifulSoup(html_content, 'html.parser')
+
+    if next_url:
+        title = soup.find('title')
+        result = re.search("\d+", title.text)
+        lab_number = result.group(0)
+        dir_name = "lab" + lab_number
+        create_directory_and_python_file(directory_path, dir_name)
 
     next_link = soup.find('a', {'rel': 'next'})
 
     if next_link:
         lab_page = next_link['href']
-        next_url = urljoin(current_url, lab_page)
+        next_url = urljoin(base_url, lab_page)
         current_url = next_url
     else:
         current_url = None
